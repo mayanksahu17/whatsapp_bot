@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HiredEasy - Assign to Agent</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <!-- Header with logo and profile -->
+  <div class="header">
+    <div class="logo-container">
+      <img src="icon48.png" alt="Logo" id="logo">
+    </div>
+  </div>
+
+  <!-- Login Section -->
+  <div id="loginContainer">
+    <h1 id="h1">Login</h1>
+    <p id="instructionText">Please enter your email to continue</p>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <button id="loginButton">Login</button>
+    <p id="status"></p>
+    <p id="new_user">New user? <a id="registerButton" href="https://hiredeasy.com/sign-up" target="_blank">Sign Up Here</a></p>
+  </div>
+
+  <!-- Job Details Input Fields -->
+  <div id="jobDetailsContainer" style="display: none;">
+    <label for="companyName">Company *</label>
+    <input type="text" id="companyName" placeholder="Enter Company Name" required>
+    
+    <label for="positionTitle">Position Title *</label>
+    <input type="text" id="positionTitle" placeholder="Enter Position Title" required>
+    
+    <label for="location">Location *</label>
+    <input type="text" id="location" placeholder="Enter Location" required>
+    
+    <label for="applyLink">Job URL *</label>
+    <input type="url" id="applyLink" placeholder="Enter Apply Link" required>
+    
+    <button id="extractButton">Assign To Agent</button>
+    <a id="logoutLink" href="#">Log Out</a>
+  </div>
+
+  <!-- Div for displaying extracted job details -->
+  <div id="extractedJobDetailsContainer" style="display: none;">
+    <ul id="jobDetailsList"></ul>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
