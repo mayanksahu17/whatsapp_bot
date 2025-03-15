@@ -1,0 +1,18 @@
+2025/03/14-14:26:11.485 5bb0 Reusing MANIFEST C:\Coding_projects\Officials\LinkedinExtension\.wwebjs_auth\session-my-session\Default\Local Storage\leveldb/MANIFEST-000001
+2025/03/14-14:26:11.490 5bb0 Recovering log #30
+2025/03/14-14:26:11.492 5bb0 Reusing old log C:\Coding_projects\Officials\LinkedinExtension\.wwebjs_auth\session-my-session\Default\Local Storage\leveldb/000030.log 
+2025/03/14-17:05:12.822 5bb0 Level-0 table #33: started
+2025/03/14-17:05:12.840 5bb0 Level-0 table #33: 13980 bytes OK
+2025/03/14-17:05:12.847 5bb0 Delete type=0 #30
+2025/03/14-17:05:12.849 5bb0 Compacting 4@0 + 1@1 files
+2025/03/14-17:05:12.862 5bb0 Generated table #34@0: 194 keys, 6507 bytes
+2025/03/14-17:05:12.863 5bb0 Compacted 4@0 + 1@1 files => 6507 bytes
+2025/03/14-17:05:12.865 5bb0 compacted to: files[ 0 1 1 0 0 0 0 ]
+2025/03/14-17:05:12.867 5bb0 Delete type=2 #21
+2025/03/14-17:05:12.868 5bb0 Delete type=2 #24
+2025/03/14-17:05:12.868 5bb0 Delete type=2 #27
+2025/03/14-17:05:12.869 5bb0 Delete type=2 #29
+2025/03/14-17:05:12.869 5bb0 Delete type=2 #33
+2025/03/14-23:55:04.913 2680 Level-0 table #36: started
+2025/03/14-23:55:04.924 2680 Level-0 table #36: 14056 bytes OK
+2025/03/14-23:55:04.927 2680 Delete type=0 #32
