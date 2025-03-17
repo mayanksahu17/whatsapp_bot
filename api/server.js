@@ -172,8 +172,9 @@ async function watchForNewUsers() {
     }
 }
 
+// TODO 
 // Start watching for new users
-watchForNewUsers();
+// watchForNewUsers();
 
 
 
