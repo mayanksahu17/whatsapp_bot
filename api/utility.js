@@ -146,35 +146,37 @@ const notifyForJobApplication = async ( groupName, message) => {
             console.error(`Failed to send message to ${groupName}:`, error);
         }
     };
-const findTargetedGroup = async (groupName) => {
-    try {
-        const chats = await client.getChats();
-        
-        // Filter and find groups using "@g.us" identifier
-        const groups = chats.filter(chat => chat.id._serialized.includes('@g.us'));
-        
-        // Find the specific group
-        const targetGroup = groups.find(group => 
-            group.name?.toLowerCase().includes(groupName.toLowerCase())
-        );
-        
-        if (!targetGroup) {
-            console.log(`Group '${groupName}' not found`);
-            return null;
-        }
-        
-        // Send message to the found group
-        // await client.sendMessage(targetGroup.id._serialized, 'Hola amigo! 👋');
-        
+    const findTargetedGroup = async (groupName) => {
+        console.log(`[DEBUG] findTargetedGroup called with groupName: ${groupName}`);
+    
+        try {
+            console.log(`[DEBUG] Fetching all chats from client...`);
+            const chats = await client.getChats();
+    
+            console.log(`[DEBUG] Total chats fetched: ${chats.length}`);
+            const groups = chats.filter(chat => chat.id._serialized.includes('@g.us'));
+    
+            console.log(`[DEBUG] Total groups found: ${groups.length}`);
+            const targetGroup = groups.find(group => 
+                group.name?.toLowerCase().includes(groupName.toLowerCase())
+            );
+    
+            if (!targetGroup) {
+                console.warn(`[WARN] Group '${groupName}' not found in available groups.`);
+                return null;
+            }
+    
+            console.log(`[INFO] Found target group: ${targetGroup.name} (ID: ${targetGroup.id._serialized})`);
+    
             return {
                 groupId: targetGroup.id._serialized,
                 groupName: targetGroup.name
             };
-    } catch (error) {
-        console.error('Error finding targeted group:', error);
-        return null;
-    }
-};
+        } catch (error) {
+            console.error(`[ERROR] Error finding targeted group '${groupName}':`, error);
+            return null;
+        }
+    };
 
 
 

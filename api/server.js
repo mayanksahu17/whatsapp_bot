@@ -42,9 +42,6 @@ app.use(cors(corsOptions));
 // Create a write stream (in append mode) for logging to a file
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
-// Use morgan for logging HTTP requests
-app.use(morgan(':method :url :status :response-time ms - :res[content-length] :remote-addr - :user-agent', { stream: accessLogStream }));
-
 // Custom middleware for detailed logging
 app.use((req, res, next) => {
     const start = Date.now();
