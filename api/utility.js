@@ -104,6 +104,7 @@ async function sendGroupsList(to) {
 // Event listener for QR code
 client.on('qr', qr => {
     console.log('No valid session found. Scan this QR code with your phone:');
+    console.log(qr)
     qrcode.generate(qr, { small: true });
 });
 
