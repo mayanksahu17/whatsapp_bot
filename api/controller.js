@@ -172,9 +172,17 @@ const sendMessage = async (req , res) => {
         message : "group notified succesfully"
     })
 }
+
+const hii = async(req, res) =>{
+    res.send({
+        success : true,
+        message : " yyye bhai "
+    })
+}
 module.exports = {
     notifyUsers ,
     storeJobDetails,
     checkEmail,
-    sendMessage
+    sendMessage,
+    hii
 }
