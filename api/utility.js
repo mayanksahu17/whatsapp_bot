@@ -102,21 +102,21 @@ async function sendGroupsList(to) {
 }
 
     // Event listener for QR code
-    // client.on('qr', qr => {
-    //     console.log("***********************************************************")
+    client.on('qr', qr => {
+        console.log("***********************************************************")
 
-    //     console.log(qr)
-    //     console.log("***********************************************************")
-    //     console.log('No valid session found. Scan this QR code with your phone:');
-    //     qrcode.generate(qr, { small: true });
-    // });
-     function run() {
-        const url = "2@l6NeJN6A8tLATwYrbLiO5sGh2sGfMoyysKR40SAgwNdyhHj5zE0LbQK8urR9ars7G/ksZdrMtD4JoUFtDn0Gd7Sj0imRxAumzL0=,wF/+coOpnIyxdTpeGZ6H6CndPNfsvfQrlKSlbk/2GTQ=,iVypVvs8ggRhmkzsROrFeMz21uXc54BLpLW48sLuD1Y=,IFVs0n1+1LP/BWggDqY3xu6z3Pv4e3nrgzHX1lwo1z0=,1"
-        qrcode.generate(url, { small: true });
+        console.log(qr)
+        console.log("***********************************************************")
+        console.log('No valid session found. Scan this QR code with your phone:');
+        qrcode.generate(qr, { small: true });
+    });
+    //  function run() {
+    //     const url = "2@AExSsm4tWo3o1KSG98KWefz7sYrIHqNbPG3801TjhhECgqqEuo9D2P3GrmEKW7LwqjWqFXdgrQopqA4CbqiUdZWpM6BowxGa9AQ=,wF/+coOpnIyxdTpeGZ6H6CndPNfsvfQrlKSlbk/2GTQ=,iVypVvs8ggRhmkzsROrFeMz21uXc54BLpLW48sLuD1Y=,IFVs0n1+1LP/BWggDqY3xu6z3Pv4e3nrgzHX1lwo1z0=,1"
+    //     qrcode.generate(url, { small: true });
 
-    }
+    // }
 
-    run()
+    // run()
 
 const notifyUser = async (GROUP_NAME, payload) => {
     const targetChatId = "91" + payload.clientId + "@c.us";
