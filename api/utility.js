@@ -215,7 +215,7 @@ client.initialize()
         try {
             // TODO: replace the api endpoint for prod.
             //  get this api from internal dashboard 
-            const response = await fetch('http://127.0.0.1:5000/get_group_name_by_email', {
+            const response = await fetch('http://192.168.29.146:5000/get_group_name_by_email', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
