@@ -1,4 +1,3 @@
-// Import necessary modules using CommonJS syntax
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const os = require('os');
@@ -6,28 +5,16 @@ const fs = require('fs');
 const path = require('path');
 
 // Set session path - typically in user's home directory
-const SESSION_PATH = path.join(os.homedir(), '.wwebjs_auth');
-
-// Determine Chrome path based on operating system
-let chromePath;
-if (os.platform() === 'win32') {
-    // Windows
-    chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-} else if (os.platform() === 'darwin') {
-    // macOS
-    chromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-} else if (os.platform() === 'linux') {
-    // Linux
-    chromePath = '/usr/bin/google-chrome';
-} else {
-    console.error('Unsupported platform! Make sure Chrome is installed.');
-    process.exit(1);
-}
+const SESSION_PATH = path.join(process.env.SESSION_PATH || os.homedir(), '.wwebjs_auth');
 
 // Check if the session files exist before initializing the client
 const sessionExists = fs.existsSync(path.join(SESSION_PATH, 'session-my-session'));
 
+console.log(`[DEBUG] Session path: ${SESSION_PATH}`);
 console.log(`[DEBUG] Session exists: ${sessionExists}`);
+
+// Track client initialization state
+let clientReady = false;
 
 const client = new Client({
     authStrategy: new LocalAuth({ 
@@ -35,8 +22,8 @@ const client = new Client({
         dataPath: SESSION_PATH // Use existing session path only
     }),
     puppeteer: {
-        executablePath: chromePath,
-        headless: sessionExists, // Run headless only if a session exists
+        // Use bundled Chromium instead of trying to find Chrome on the system
+        headless: true, // Always run headless in deployment
         args: [
             '--no-sandbox', 
             '--disable-setuid-sandbox',
@@ -55,6 +42,7 @@ const client = new Client({
     takeoverOnConflict: true, 
     takeoverTimeoutMs: 0 // No timeout for takeover
 });
+
 
 
 // Debug command to check WhatsApp Web status
