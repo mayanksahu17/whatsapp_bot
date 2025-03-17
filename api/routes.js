@@ -9,7 +9,7 @@ router.route('/notify').post(notifyUsers)
 router.route('/store-job-details').post(storeJobDetails)
 router.route('/check-email').post(checkEmail)
 router.route('/send-message').post(sendMessage)
-router.route('/hii').post(hii)
+router.route('/hii').get(hii)
 
 
 module.exports = {
