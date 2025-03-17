@@ -166,9 +166,9 @@ const notifyUsers = async (req, res) => {
 };
 const sendMessage = async (req , res) => {
     const { groupName , message} = req.body
-    const flag = notifyForJobApplication( groupName , message)
+    const flag = await  notifyForJobApplication( groupName , message)
     res.send({
-        success : true,
+        success : flag,
         message : "group notified succesfully"
     })
 }

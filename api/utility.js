@@ -2,6 +2,11 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const os = require('os');
+const fs = require('fs');
+const path = require('path');
+
+// Set session path - typically in user's home directory
+const SESSION_PATH = path.join(os.homedir(), '.wwebjs_auth');
 
 // Determine Chrome path based on operating system
 let chromePath;
@@ -19,29 +24,35 @@ if (os.platform() === 'win32') {
     process.exit(1);
 }
 
-// Create a single client instance with proper configuration and longer timeout
+// Check if the session files exist before initializing the client
+const sessionExists = fs.existsSync(path.join(SESSION_PATH, 'session-my-session'));
+
+console.log(`[DEBUG] Session exists: ${sessionExists}`);
+
 const client = new Client({
     authStrategy: new LocalAuth({ 
         clientId: "my-session",
-        dataPath: './.wwebjs_auth' // Explicitly set data path for session storage
+        dataPath: SESSION_PATH // Use existing session path only
     }),
     puppeteer: {
         executablePath: chromePath,
-        headless: false,
+        headless: sessionExists, // Run headless only if a session exists
         args: [
             '--no-sandbox', 
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-accelerated-2d-canvas',
             '--disable-gpu',
-            '--window-size=1280,800' // Larger window size
+            '--window-size=1280,800',
+            '--disable-popup-blocking', // Prevent pop-ups
+            '--disable-infobars', // Prevent info bars
+            '--disable-features=TranslateUI,BlinkGenPropertyTrees' // Further pop-up prevention
         ],
         defaultViewport: null
     },
-    // Increase timeouts for loading
-    qrTimeoutMs: 0, // No timeout for QR
-    authTimeoutMs: 0, // No timeout for auth
-    takeoverOnConflict: true, // Take over existing sessions
+    qrTimeoutMs: sessionExists ? 0 : 30000, // No timeout if session exists, else 30s for QR
+    authTimeoutMs: sessionExists ? 0 : 30000, // No timeout if session exists, else 30s for auth
+    takeoverOnConflict: true, 
     takeoverTimeoutMs: 0 // No timeout for takeover
 });
 
@@ -81,6 +92,27 @@ client.on('message_create', async message => {
     }
 });
 
+// Helper function to send the groups list with retry
+async function sendGroupsList(to) {
+    try {
+        const chats = await client.getChats();
+        const groups = chats.filter(chat => chat.isGroup);
+        
+        if (groups.length === 0) {
+            return client.sendMessage(to, 'You have no groups.');
+        }
+        
+        const groupsList = groups.map((group, index) => 
+            `${index + 1}. ${group.name} (${group.id._serialized})`
+        ).join('\n');
+        
+        await client.sendMessage(to, `Your groups:\n${groupsList}`);
+    } catch (error) {
+        console.error('Error fetching groups:', error);
+        await client.sendMessage(to, `Error fetching groups: ${error.message}`);
+    }
+}
+
 // Event listener for QR code
 client.on('qr', qr => {
     console.log('No valid session found. Scan this QR code with your phone:');
@@ -88,7 +120,7 @@ client.on('qr', qr => {
 });
 
 
-const notifyUser = async (GROUP_NAME , payload) => {
+const notifyUser = async (GROUP_NAME, payload) => {
     const targetChatId = "91" + payload.clientId + "@c.us";
     const message = `Hi ${payload.client_name},
 
@@ -103,12 +135,14 @@ If you need any further assistance or have additional instructions, please feel 
     try {
         await client.sendMessage(targetChatId, message);
         console.log(`Message sent successfully to ${targetChatId}`);
+        return true;
     } catch (error) {
         console.error(`Failed to send message to ${targetChatId}:`, error);
+        return false;
     }
 };
 
-const notifyMember = async ( groupName, payload) => {
+const notifyMember = async (groupName, payload) => {
     
 const message = `**Hi ${groupName},**
 
@@ -125,60 +159,67 @@ Please proceed with the application on behalf of the client and update the statu
 
     try {
         const group = await findTargetedGroup(groupName);
+        if (!group) {
+            console.error(`Group not found: ${groupName}`);
+            return false;
+        }
         await client.sendMessage(group.groupId, message);
         console.log(`Message sent successfully to ${groupName}`);
-        return true
-
+        return true;
     } catch (error) {
         console.error(`Failed to send message to ${groupName}:`, error);
+        return false;
     }
 };
 
 
-const notifyForJobApplication = async ( groupName, message) => {
-        try {
-            const group = await findTargetedGroup(groupName);
-            await client.sendMessage(group.groupId, message);
-            console.log(`Message sent successfully to ${groupName}`);
-            return true
-    
-        } catch (error) {
-            console.error(`Failed to send message to ${groupName}:`, error);
+const notifyForJobApplication = async (groupName, message) => {
+    try {
+        const group = await findTargetedGroup(groupName);
+        if (!group) {
+            console.error(`Group not found: ${groupName}`);
+            return false;
         }
-    };
-    const findTargetedGroup = async (groupName) => {
-        console.log(`[DEBUG] findTargetedGroup called with groupName: ${groupName}`);
-    
-        try {
-            console.log(`[DEBUG] Fetching all chats from client...`);
-            const chats = await client.getChats();
-    
-            console.log(`[DEBUG] Total chats fetched: ${chats.length}`);
-            const groups = chats.filter(chat => chat.id._serialized.includes('@g.us'));
-    
-            console.log(`[DEBUG] Total groups found: ${groups.length}`);
-            const targetGroup = groups.find(group => 
-                group.name?.toLowerCase().includes(groupName.toLowerCase())
-            );
-    
-            if (!targetGroup) {
-                console.warn(`[WARN] Group '${groupName}' not found in available groups.`);
-                return null;
-            }
-    
-            console.log(`[INFO] Found target group: ${targetGroup.name} (ID: ${targetGroup.id._serialized})`);
-    
-            return {
-                groupId: targetGroup.id._serialized,
-                groupName: targetGroup.name
-            };
-        } catch (error) {
-            console.error(`[ERROR] Error finding targeted group '${groupName}':`, error);
+        await client.sendMessage(group.groupId, message);
+        console.log(`Message sent successfully to ${groupName}`);
+        return true;
+    } catch (error) {
+        console.error(`Failed to send message to ${groupName}:`, error);
+        return false;
+    }
+};
+
+const findTargetedGroup = async (groupName) => {
+    console.log(`[DEBUG] findTargetedGroup called with groupName: ${groupName}`);
+
+    try {
+        console.log(`[DEBUG] Fetching all chats from client...`);
+        const chats = await client.getChats();
+
+        console.log(`[DEBUG] Total chats fetched: ${chats.length}`);
+        const groups = chats.filter(chat => chat.id._serialized.includes('@g.us'));
+
+        console.log(`[DEBUG] Total groups found: ${groups.length}`);
+        const targetGroup = groups.find(group => 
+            group.name?.toLowerCase().includes(groupName.toLowerCase())
+        );
+
+        if (!targetGroup) {
+            console.warn(`[WARN] Group '${groupName}' not found in available groups.`);
             return null;
         }
-    };
 
+        console.log(`[INFO] Found target group: ${targetGroup.name} (ID: ${targetGroup.id._serialized})`);
 
+        return {
+            groupId: targetGroup.id._serialized,
+            groupName: targetGroup.name
+        };
+    } catch (error) {
+        console.error(`[ERROR] Error finding targeted group '${groupName}':`, error);
+        return null;
+    }
+};
 
 // Event listener for when the client is ready with longer delay
 client.on('ready', async () => {
@@ -207,43 +248,41 @@ client.initialize()
     });
 
 
-    const getGroupNameByEmail = async (email) => {
-        
-        if (!email) {
-            console.log("Mobile number is required!");
-            return;
-        }
-    
-        try {
-            // TODO: replace the api endpoint for prod.
-            //  get this api from internal dashboard 
-            const response = await fetch('http://192.168.29.146:5000/get_group_name_by_email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email: email })
-            });
-    
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.log(`Error: ${errorData.message}`);
-                return;
-            }
-    
-            const data = await response.json();
-            console.log(`Group Name: ${data.group_name}`);
-            return data.group_name;
-        } catch (error) {
-            console.log("An error occurred:", error);
-        }
-    };
-    
-
-    
-    module.exports = {
-        notifyUser,
-        notifyMember,
-        getGroupNameByEmail,
-        notifyForJobApplication
+const getGroupNameByEmail = async (email) => {
+    if (!email) {
+        console.log("Email is required!");
+        return null;
     }
+
+    try {
+        // TODO: replace the api endpoint for prod.
+        //  get this api from internal dashboard 
+        const response = await fetch('http://192.168.29.146:5000/get_group_name_by_email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.log(`Error: ${errorData.message}`);
+            return null;
+        }
+
+        const data = await response.json();
+        console.log(`Group Name: ${data.group_name}`);
+        return data.group_name;
+    } catch (error) {
+        console.log("An error occurred:", error);
+        return null;
+    }
+};
+    
+module.exports = {
+    notifyUser,
+    notifyMember,
+    getGroupNameByEmail,
+    notifyForJobApplication
+}
